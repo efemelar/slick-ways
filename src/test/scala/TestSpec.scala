@@ -21,11 +21,11 @@ abstract class TestSuite(db: JdbcProfile#Backend#Database, profile: JdbcProfile)
       Choice(2, "a measure of the likeliness that an event will occur", true),
       Choice(2, "a measure of belief in some outcome", false)
     )
-    val schema = new Schema(profile)
-    val testDao = new TestDao(schema)
-    val choiceDao = new ChoiceDao(schema)
-    db withTransaction { implicit s =>
 
+    import TestDao.testDao
+    import ChoiceDao.choiceDao
+    implicit val schema = new Schema(profile)
+    db withTransaction { implicit s =>
       schema.create()
 
       testDao insert newTests
