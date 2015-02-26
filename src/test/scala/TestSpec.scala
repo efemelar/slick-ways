@@ -1,8 +1,8 @@
 package slickways
 
-import scala.slick.jdbc.JdbcBackend.{Database, Session}
+import scala.slick.driver.JdbcProfile
 
-abstract class TestSuite(db: Database) extends org.scalatest.FunSuite {
+abstract class TestSuite(db: JdbcProfile#Backend#Database, profile: JdbcProfile) extends org.scalatest.FunSuite {
   test("H2") {
     val newTests = List(
       Test(
@@ -21,19 +21,25 @@ abstract class TestSuite(db: Database) extends org.scalatest.FunSuite {
       Choice(2, "a measure of the likeliness that an event will occur", true),
       Choice(2, "a measure of belief in some outcome", false)
     )
-
+    val schema = new Schema(profile)
+    val testDao = new TestDao(schema)
+    val choiceDao = new ChoiceDao(schema)
     db withTransaction { implicit s =>
 
-      Schema.create()
+      schema.create()
 
-      TestDao insert newTests
-      assert(TestDao.list === newTests)
+      testDao insert newTests
+      assert(testDao.list === newTests)
 
-      ChoiceDao insert newChoices
-      assert(ChoiceDao.list === newChoices)
+      choiceDao insert newChoices
+      assert(choiceDao.list === newChoices)
     }
   }
 }
 
+import scala.slick.driver.H2Driver
 class H2TestSuite
-  extends TestSuite(Database.forURL("jdbc:h2:mem:test", driver = "org.h2.Driver"))
+  extends TestSuite(
+    H2Driver.simple.Database.forURL("jdbc:h2:mem:test", driver = "org.h2.Driver"),
+    H2Driver
+  )

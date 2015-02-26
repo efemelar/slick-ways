@@ -5,14 +5,8 @@ case class Test(id: Int, subject: String, question: String, explanation: String)
 case class Choice(testId: Int, text: String, right: Boolean)
 
 
+import scala.slick.lifted._
 import scala.slick.driver.JdbcProfile
-
-object DbConnection {
-  import scala.slick.driver.H2Driver
-  lazy val profile = H2Driver
-}
-
-object Schema extends Schema(DbConnection.profile)
 
 class Schema(val profile: JdbcProfile) {
 
@@ -45,17 +39,17 @@ class Schema(val profile: JdbcProfile) {
   def create()(implicit s: Session) = Seq(Tests, Choices) foreach (_.ddl.create)
 }
 
+class TestDao(schema: Schema) {
+  import schema._, profile.simple._
 
-import scala.slick.jdbc.JdbcBackend.Session
-import Schema._, profile.simple._
-
-object TestDao {
   def insert(tests: List[Test])(implicit session: Session) = Tests ++= tests
 
   def list(implicit session: Session): List[Test] = Tests.list
 }
 
-object ChoiceDao {
+class ChoiceDao(schema: Schema) {
+  import schema._, profile.simple._
+
   def insert(choices: List[Choice])(implicit session: Session) = Choices ++= choices
 
   def list(implicit session: Session): List[Choice] = Choices.list
