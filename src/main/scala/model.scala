@@ -37,35 +37,22 @@ class Schema(val profile: JdbcProfile) {
   val Choices = TableQuery[Choices]
 
   def create()(implicit s: Session) = Seq(Tests, Choices) foreach (_.ddl.create)
+
+  class TestDao(implicit s: Session) {
+    def ++=(ts: Seq[Test]) = Tests ++= ts
+    def all: Seq[Test] = Tests.build
+  }
+
+  def testDao(implicit s: Session) = new TestDao
+
+  class ChoiceDao(implicit s: Session) {
+    def ++=(cs: Seq[Choice]) = Choices ++= cs
+    def all: Seq[Choice] = Choices.build
+  }
+
+  def choiceDao(implicit s: Session) = new ChoiceDao
 }
 
-object Aliases  {
-  type Session = JdbcProfile#Backend#Session
-}
-import Aliases._
 
-object TestDao {
-  def testDao(implicit schema: Schema, session: Session) = new TestDao
-}
-
-class TestDao(implicit schema: Schema, session: Session) {
-  import schema._, profile.simple._
-
-  def insert(tests: List[Test]) = Tests ++= tests
-
-  def list: List[Test] = Tests.list
-}
-
-object ChoiceDao {
-  def choiceDao(implicit schema: Schema, session: Session) = new ChoiceDao
-}
-
-class ChoiceDao(implicit schema: Schema, session: Session) {
-  import schema._, profile.simple._
-
-  def insert(choices: List[Choice])= Choices ++= choices
-
-  def list: List[Choice] = Choices.list
-}
 
 

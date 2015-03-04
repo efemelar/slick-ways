@@ -22,17 +22,18 @@ abstract class TestSuite(db: JdbcProfile#Backend#Database, profile: JdbcProfile)
       Choice(2, "a measure of belief in some outcome", false)
     )
 
-    import TestDao.testDao
-    import ChoiceDao.choiceDao
-    implicit val schema = new Schema(profile)
+    val schema = new Schema(profile)
+    import schema.testDao
+    import schema.choiceDao
+
     db withTransaction { implicit s =>
       schema.create()
 
-      testDao insert newTests
-      assert(testDao.list === newTests)
+      testDao ++= newTests
+      assert(testDao.all === newTests)
 
-      choiceDao insert newChoices
-      assert(choiceDao.list === newChoices)
+      choiceDao ++= newChoices
+      assert(choiceDao.all === newChoices)
     }
   }
 }
